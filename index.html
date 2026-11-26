@@ -267,4 +267,56 @@ $("next").onclick=async()=>{if(!answered)return;if(!(await verifyExamConnection(
  finish();
 };
 // La carga del banco se realiza solo tras validar el acceso.
+</script>
+  <!-- PANTALLA DE ACCESO CON SUPABASE -->
+<div id="login-overlay" style="position:fixed;inset:0;background:#f3f6f4;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="background:#fff;border:1px solid #dce5e0;border-radius:20px;padding:32px;max-width:380px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.06);text-align:center;">
+    <h2 style="margin:0 0 8px;color:#172522;font-size:22px;">Acceso al Simulacro CAP</h2>
+    <p style="margin:0 0 20px;color:#66736f;font-size:14px;">Introduce tu código de alumno y contraseña</p>
+    <input id="cod-user" type="text" placeholder="Código (ej. UDMM)" maxlength="10" style="width:100%;box-sizing:border-box;padding:12px;margin-bottom:12px;border:1.5px solid #dce5e0;border-radius:10px;font-size:16px;text-transform:uppercase;">
+    <input id="cod-pass" type="password" placeholder="Contraseña" style="width:100%;box-sizing:border-box;padding:12px;margin-bottom:16px;border:1.5px solid #dce5e0;border-radius:10px;font-size:16px;">
+    <button id="btn-login" onclick="iniciarSesionCAP()" style="width:100%;border:0;border-radius:12px;padding:14px;background:#176b55;color:#fff;font-weight:700;font-size:16px;cursor:pointer;">Entrar al Test</button>
+    <p id="login-error" style="color:#b42318;font-size:14px;margin:12px 0 0;display:none;"></p>
+  </div>
+</div>
+
+<script src="https://jsdelivr.net"></script>
+<script>
+  const sb = supabase.createClient(
+    'https://supabase.co',
+    'sb_publishable_kHWw6EYu7A38fknUZS7MNw_G1xNRTcJ'
+  );
+
+  sb.auth.getSession().then(({ data }) => {
+    if (data.session) document.getElementById('login-overlay').style.display = 'none';
+  });
+
+  async function iniciarSesionCAP() {
+    const rawCode = document.getElementById('cod-user').value.trim().toLowerCase();
+    const password = document.getElementById('cod-pass').value;
+    const errBox = document.getElementById('login-error');
+    const btn = document.getElementById('btn-login');
+
+    if (!rawCode || !password) {
+      errBox.textContent = 'Escribe tu código y contraseña.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Comprobando...';
+    btn.disabled = true;
+    errBox.style.display = 'none';
+
+    const email = rawCode.includes('@') ? rawCode : rawCode + '@test.com';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errBox.textContent = 'Código o contraseña incorrectos.';
+      errBox.style.display = 'block';
+      btn.textContent = 'Entrar al Test';
+      btn.disabled = false;
+    } else {
+      document.getElementById('login-overlay').style.display = 'none';
+    }
+  }
 </script><footer style="text-align:center;padding:14px 10px;color:#66736f;font-size:11px"><a href="https://time.now" target="_blank" rel="noopener noreferrer" style="color:inherit">Hora oficial consultada mediante Time.Now</a></footer></body></html>
